@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+from mbot_semantic_mapping_ros import mbot_semantic_mapping as semantic_mapping_class
+import rospy
+
+if __name__ == '__main__':
+
+    # Initiating ros node
+    rospy.init_node('mbot_semantic_mapping', anonymous=False)
+
+    # Instantiating SemanticMapping object
+    semantic_mapping = semantic_mapping_class.SemanticMapping()
+
+    semantic_mapping.loop()

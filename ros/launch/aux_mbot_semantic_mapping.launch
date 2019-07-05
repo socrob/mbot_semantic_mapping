@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- move_base with DWA approach -->
+    <include file="$(find mbot_2dnav)/ros/launch/2dnav.launch" />
+
+    <!-- move_base action lib wrapper -->
+    <include file="$(find mbot_actions)/ros/launch/move_base_wrapper.launch"/>
+
+    <!-- perception -->
+    <include file="$(find mbot_perception_launch)/launch/mbot_perception.launch" >
+        <arg name="max_detection_rate_specific"     value="5.0" />
+        <arg name="launch_generic"                  value="false" />
+    </include>
+
+    <!-- Second localiser using depth map from support surface, publishing on the same topic -->
+
+    <group ns="/mbot_perception" >
+
+        <!--  -->
+        <include file="$(find support_surface_saver)/ros/launch/support_surface_publisher.launch" >
+            <arg name="max_rate"  value="5.0" />
+        </include>
+
+        <!-- Specific Localizer -->
+        <include  file="$(find mbot_object_localization)/ros/launch/mbot_object_localization.launch" >
+            <arg name="camera_depth_topic"      value="/mbot_perception/support_surface/depth/image"/>
+            <arg name="camera_info_topic"       value="/mbot_perception/support_surface/depth/camera_info"/>
+            <arg name="inner_ratio"             value="0.001" />
+            <arg name="center_inner_region"     value="false" />
+            <arg name="remove_intersections"    value="false"/>
+            <arg name="roi_array_topic"         value="/mbot_perception/specific_detector/detections" />
+            <arg name="node_name"               value="specific_localizer_support_surfaces" />
+        </include>
+
+        <!-- Relay output of localizers, tracker needs as one topic only -->
+        <node pkg="topic_tools" type="relay" name="relay_specific_localizer_support_surfaces" output="log" args="/mbot_perception/specific_localizer_support_surfaces/localized_object_poses /mbot_perception/specific_localizer/localized_object_poses">
+          <param name="lazy" value="true"/>
+        </node>
+
+    </group>
+
+    <include file="$(find bayes_objects_tracker)/launch/bayes_objects_tracker.launch"/>
+    <include file="$(find mbot_objects_mapping)/ros/launch/mbot_objects_mapping.launch"/>
+
+
+    <!-- execution: action lib servers -->
+    <include file="$(find mbot_actions)/ros/launch/run_action_servers.launch" >
+        <arg name="navigation_required"   default="true" />
+        <arg name="perception_required"   default="true" />
+        <arg name="manipulation_required" default="true" />
+        <arg name="hri_required"          default="true" />
+    </include>
+
+    <!-- gazing node-->
+    <node pkg="tbm1" type="gazing_node" name="full_gazing" respawn="true" />
+
+</launch>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <arg name="robot_env" default="$(optenv ROBOT_ENV !!NO_ROBOT_ENV_SET!!)" />
+  <arg name="output"    default="screen" />
+  <arg name="node_name" default="mbot_semantic_mapping" />
+
+  <arg name="world_model_path"          default="$(find mbot_world_model)/maps/$(arg robot_env)/" />
+  <arg name="waypoints_visit_list"      default="$(find mbot_world_model)/maps/$(arg robot_env)/waypoints_visit_list.yaml" />
+  <arg name="output_semantic_map_file"  default="$(find mbot_world_model)/maps/$(arg robot_env)/semantic_map_output.yaml" />
+  <arg name="output_semantic_map_topic" default="semantic_map" />
+
+  <node pkg="mbot_semantic_mapping" type="mbot_semantic_mapping_node" name="$(arg node_name)" output="$(arg output)" required="true">
+    <rosparam command="load" file="$(find mbot_semantic_mapping)/ros/config/mbot_semantic_mapping.yaml"/>
+    
+    <remap from="~output_semantic_map_topic"  to="$(arg output_semantic_map_topic)" />
+    
+    <param name="world_model_path"            value="$(arg world_model_path)"         type="string"/>
+    <param name="waypoints_visit_list"        value="$(arg waypoints_visit_list)"     type="string"/>
+    <param name="output_semantic_map_file"    value="$(arg output_semantic_map_file)" type="string"/>
+  </node>
+
+</launch>
